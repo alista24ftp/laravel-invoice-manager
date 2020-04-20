@@ -13,6 +13,7 @@
 
   <!-- Styles -->
   <link href="{{ mix('css/app.css') }}" rel="stylesheet">
+  @yield('customstyles')
 
 </head>
 
@@ -21,7 +22,20 @@
 
     <div class="container">
 
-      @yield('content')
+      @include('shared._messages')
+      @if(Auth::check())
+        <div class="row">
+          <div class="col-3">
+            @include('layouts._nav')
+          </div>
+          <div class="col-9">
+            @yield('content')
+          </div>
+        </div>
+
+      @else
+        @yield('content')
+      @endif
 
     </div>
 
@@ -30,6 +44,7 @@
 
   <!-- Scripts -->
   <script src="{{ mix('js/app.js') }}"></script>
+  @yield('customjs')
 </body>
 
 </html>

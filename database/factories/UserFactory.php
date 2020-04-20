@@ -1,7 +1,7 @@
 <?php
 
 /** @var \Illuminate\Database\Eloquent\Factory $factory */
-use App\User;
+use App\Models\User;
 use Illuminate\Support\Str;
 use Faker\Generator as Faker;
 
@@ -17,11 +17,15 @@ use Faker\Generator as Faker;
 */
 
 $factory->define(User::class, function (Faker $faker) {
+    $curr_time = now();
     return [
-        'name' => $faker->name,
-        'email' => $faker->unique()->safeEmail,
-        'email_verified_at' => now(),
-        'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+        'username' => env('APP_USERNAME'), //$faker->name,
+        'firstname' => env('APP_FIRSTNAME'),
+        'email' => env('APP_EMAIL'), //$faker->unique()->safeEmail,
+        'email_verified_at' => $curr_time,
+        'password' => env('APP_PASSWORD'),
         'remember_token' => Str::random(10),
+        'created_at' => $curr_time,
+        'updated_at' => $curr_time,
     ];
 });
