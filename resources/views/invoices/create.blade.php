@@ -8,6 +8,10 @@
     {{csrf_field()}}
     <input type="hidden" name="op" value="create" />
 
+    @foreach ($invoice->paymentProofs as $idx => $proof)
+      <input id="proof_{{$idx}}" class="proofs" type="hidden" name="proofs[{{$idx}}][path]" value="{{$proof->path}}" />
+    @endforeach
+
     @if(Cache::has('user_' . Auth::user()->id . '_invoice'))
       <div id="progress_alert" class="alert alert-info alert-dismissible fade show" role="alert">
         <p class="mt-2 mb-2">There is a previous saved invoice progress.</p>

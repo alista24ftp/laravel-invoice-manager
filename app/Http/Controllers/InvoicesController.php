@@ -13,6 +13,7 @@ use App\Models\PaymentTerm;
 use App\Models\Shipping;
 use App\Models\Product;
 use App\Models\Tax;
+use App\Models\PaymentProof;
 
 class InvoicesController extends Controller
 {
@@ -66,6 +67,11 @@ class InvoicesController extends Controller
         $shipping_options = Shipping::all();
         $products = Product::all();
         $taxes = Tax::all();
+
+        if(session()->has('saved_invoice')){
+            $invoice = session('saved_invoice');
+            session()->remove('saved_invoice');
+        }
         return view('invoices.create', compact('invoice',
             'provinces',
             'sales_reps',
@@ -91,7 +97,41 @@ class InvoicesController extends Controller
             ]));
         }
         $invoice->orders()->saveMany($newOrders);
-        return redirect()->to(route('invoices.index'))->with('success', 'Invoice created successfully!');
+
+        $msg_type = 'success';
+        $msg = 'Invoice created successfully!';
+
+        // save related payment proofs to database and move related temp proofs to payment_proofs directory
+        if(is_array($request->proofs) && count($request->proofs) > 0){
+            $newProofs = [];
+            $numProofs = count($request->proofs);
+            $successProofs = 0;
+            $dest_dir = '/uploads/images/payment_proofs/' . date('Ym/d', time()); // eg. /uploads/images/payment_proofs/202004/13
+            $dest_path = public_path() . $dest_dir;
+            if(!file_exists($dest_path) || !is_dir($dest_path)){
+                mkdir($dest_path, 0777, true);
+            }
+            foreach($request->proofs as $proof){ // eg. proof -> /uploads/images/temp/1234567890_a1B2c3D4e5.png
+                $old_proof_path = public_path() . $proof;
+                if(file_exists($old_proof_path)){
+                    $proof_filename = pathinfo($old_proof_path, PATHINFO_BASENAME); // eg. 1234567890_a1B2c3D4e5.png
+                    $new_proof_name = $dest_dir . '/'. $invoice->invoice_no . '_' . $proof_filename; // eg. /uploads/images/payment_proofs/202004/13/1_1234567890_a1B2c3D4e5.png
+                    if(rename($old_proof_path, public_path() . $new_proof_name)){
+                        array_push($newProofs, new PaymentProof([
+                            'path' => $new_proof_name,
+                            'create_time' => now()
+                        ]));
+                        $successProofs++;
+                    }
+                }
+            }
+            $invoice->paymentProofs()->saveMany($newProofs);
+            if($successProofs != $numProofs){
+                $msg_type = 'warning';
+                $msg = 'Invoice created successfully, but problems occurred when uploading payment proofs';
+            }
+        }
+        return redirect()->to(route('invoices.index'))->with($msg_type, $msg);
     }
 
     public function edit(Invoice $invoice)
@@ -102,6 +142,11 @@ class InvoicesController extends Controller
         $shipping_options = Shipping::all();
         $products = Product::all();
         $taxes = Tax::all();
+
+        if(session()->has('saved_invoice')){
+            $invoice = session('saved_invoice');
+            session()->remove('saved_invoice');
+        }
         return view('invoices.edit', compact('invoice',
             'provinces',
             'sales_reps',
@@ -142,8 +187,60 @@ class InvoicesController extends Controller
         if($request->isXmlHttpRequest()){
             $invoiceFields = $request->except(['_method']);
             // Cache
-            if(Cache::put('user_' . Auth::user()->id . '_invoice', $invoiceFields)){
-                return response('Invoice changes saved', 200);
+            $cache_key = 'user_' . Auth::user()->id . '_invoice';
+            // Remove any previously saved invoice
+            if(Cache::has($cache_key)){ // if cache has previously saved invoice
+                $prevFields = Cache::get($cache_key);
+                if(array_key_exists('proofs', $prevFields)){ // prev saved invoice contains payment proofs
+                    // remove all prev saved invoice payment proofs
+                    foreach($prevFields['proofs'] as $proof) { // proof['path'] -> /uploads/images/saved/1234567890_abcdefghij.png
+                        $proof_full_path = public_path() . $proof['path'];
+                        if(file_exists($proof_full_path) && is_file($proof_full_path)){
+                            unlink($proof_full_path);
+                        }
+                    }
+                }
+                Cache::forget($cache_key); // remove previously saved invoice
+            }
+
+            // Save current invoice state
+            // 1. Save and update any related invoice payment proofs
+            if(array_key_exists('proofs', $invoiceFields)) {
+                $saved_proofs_dir = '/uploads/images/saved';
+                $saved_proofs_dirpath = public_path() . $saved_proofs_dir;
+                if(!file_exists($saved_proofs_dirpath) || !is_dir($saved_proofs_dirpath)){
+                    mkdir($saved_proofs_dirpath, 0777, true);
+                }
+                // check to see if saved invoice payment proofs are valid
+                $validProofs = array_filter($invoiceFields['proofs'], function($proof){
+                    $proof_full_path = public_path() . $proof['path'];
+                    return file_exists($proof_full_path) && is_file($proof_full_path);
+                });
+                if(count($validProofs) != count($invoiceFields['proofs'])){
+                    return abort(500, 'Unable to save invoice payment proofs');
+                }
+
+                // move temp proofs to new location
+                foreach($validProofs as $idx => $proof) {
+                    $proof_full_path = public_path() . $proof['path'];
+                    $proof_filename = pathinfo($proof_full_path, PATHINFO_BASENAME); // eg. 1234567890_abcdefghij.png
+                    $new_proof_path = $saved_proofs_dir . '/' . $proof_filename; // eg. /uploads/images/saved/1234567890_abcdefghij.png
+                    $new_proof_full_path = $saved_proofs_dirpath . '/' . $proof_filename; // eg. public/uploads/images/saved/1234567890_abcdefghij.png
+                    // move proof to new location
+                    rename($proof_full_path, $new_proof_full_path);
+                    // replace original proof path with new proof path
+                    $invoiceFields['proofs'][$idx]['path'] = $new_proof_path;
+                }
+            }
+            // 2. Save invoice state to cache
+            if(Cache::put($cache_key, $invoiceFields)){
+                $res = [
+                    'msg' => 'Invoice changes saved'
+                ];
+                if(array_key_exists('proofs', $invoiceFields)){ // return updated proof paths with response
+                    $res['proofs'] = $invoiceFields['proofs'];
+                }
+                return response($res, 200);
             }
             // Unable to save invoice changes
             abort(500, 'Unable to save invoice changes');
@@ -161,14 +258,29 @@ class InvoicesController extends Controller
             //return redirect()->route('invoices.index')->with('error', 'There is no previously saved invoice progress');
         }
         $invoice->fill($invoiceFields);
-        foreach($invoiceFields['orders'] as $invoiceOrder){
-            $invoice->orders->push($invoiceOrder);
+
+        // restore invoice orders, if any
+        if(array_key_exists('orders', $invoiceFields)){
+            $invoice->orders = collect([]);
+            foreach($invoiceFields['orders'] as $invoiceOrder){
+                $invoice->orders->push(new Order($invoiceOrder));
+            }
         }
+
         if($invoiceFields['op'] == 'edit'){
             $invoice->invoice_no = $invoiceFields['old_invoice_no'];
+            session(['saved_invoice' => $invoice]);
             return redirect()->route('invoices.edit', [$invoice]);
         }
-        return redirect()->route('invoices.create', [$invoice]);
+        // restore create form
+        if(array_key_exists('proofs', $invoiceFields)){
+            $invoice->paymentProofs = collect([]);
+            foreach($invoiceFields['proofs'] as $invoiceProof){
+                $invoice->paymentProofs->push(new PaymentProof($invoiceProof));
+            }
+        }
+        session(['saved_invoice' => $invoice]);
+        return redirect()->route('invoices.create');
     }
 
     // delete saved invoice progress
@@ -176,11 +288,24 @@ class InvoicesController extends Controller
     {
         if($request->isXmlHttpRequest()){
             // Delete saved invoice progress from cache
-            $progress = Cache::forget('user_' . Auth::user()->id . '_invoice');
+            $cache_key = 'user_' . Auth::user()->id . '_invoice';
+            if(Cache::has($cache_key)){
+                $invoiceFields = Cache::get('$cache_key');
+                // remove saved invoice payment proofs, if any
+                if(array_key_exists('proofs', $invoiceFields)){
+                    foreach($invoiceFields['proofs'] as $proof){
+                        $proof_full_path = public_path() . $proof['path'];
+                        if(file_exists($proof_full_path) && is_file($proof_full_path)){
+                            unlink($proof_full_path);
+                        }
+                    }
+                }
+            }
+            $progress = Cache::forget($cache_key);
             if($progress){
                 return response('Previous saved invoice progress deleted', 200);
             }
-            abort(500, 'Unable to delete progress');
+            return abort(500, 'Unable to delete saved invoice progress');
         }
         abort(404);
     }
@@ -188,5 +313,10 @@ class InvoicesController extends Controller
     public function pay(Invoice $invoice)
     {
         return view('invoices.pay', compact('invoice'));
+    }
+
+    public function payModify(Invoice $invoice, Request $request)
+    {
+        //
     }
 }

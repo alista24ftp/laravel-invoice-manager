@@ -116,6 +116,11 @@ class Invoice extends Model
         return false;
     }
 
+    public function textPayStatus()
+    {
+        return $this->paid ? 'PAID' : ($this->overdue() ? 'OVERDUE' : 'UNPAID');
+    }
+
     public function orders()
     {
         return $this->hasMany(Order::class, 'invoice_no', 'invoice_no');
@@ -129,5 +134,10 @@ class Invoice extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function paymentProofs()
+    {
+        return $this->hasMany(PaymentProof::class, 'invoice_no', 'invoice_no');
     }
 }
