@@ -25,6 +25,10 @@ Route::get('invoices/{invoice}/pay', 'InvoicesController@pay')->name('invoices.p
 Route::post('invoices/{invoice}/pay', 'InvoicesController@payModify')->name('invoices.pay_modify');
 Route::delete('invoices/delete_progress', 'InvoicesController@deleteProgress')->name('invoices.delete_progress');
 
+Route::post('proofs', 'PaymentProofsController@store')->name('proofs.upload');
+Route::delete('proofs/delete_temp', 'PaymentProofsController@deleteTemp')->name('proofs.delete_temp');
+Route::delete('proofs/{proof}', 'PaymentProofsController@delete')->name('proofs.delete');
+
 Route::get('login', 'UsersController@login')->name('login');
 Route::post('login', 'UsersController@loginUser')->name('login');
 Route::delete('logout', 'UsersController@logout')->name('logout');

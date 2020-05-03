@@ -18,7 +18,7 @@ class PaymentProofsController extends Controller
     public function store(Request $request, ImageUploadHandler $uploader)
     {
         $validatedReq = $request->validate([
-            'file' => 'required|file|mimes:jpg,png,jpeg,gif',
+            'upload_file' => 'required|file|mimes:jpg,png,jpeg,gif',
             'invoice_no' => 'nullable|exists:invoices,invoice_no'
         ]);
         $res = [
@@ -27,8 +27,9 @@ class PaymentProofsController extends Controller
             'imgPath' => '',
             'imgFullPath' => ''
         ];
-        if($file = $validatedReq->upload_file){
-            if($invoice_no = $validatedReq->invoice_no){ // associated with invoice
+
+        if($file = $request->upload_file){
+            if($invoice_no = $request->invoice_no){ // associated with invoice
                 $upload_res = $uploader->save($file, 'payment_proofs', ['invoice_no' => $invoice_no], true);
                 if($upload_res){ // upload success
                     // save payment proof to database
@@ -63,7 +64,7 @@ class PaymentProofsController extends Controller
 
     public function delete(Request $request, PaymentProof $proof)
     {
-        $proof_full_path = public_path() . '/' . $proof->path;
+        $proof_full_path = public_path() . $proof->path;
         $res = [
             'success' => false,
             'msg' => 'Delete failed'
@@ -82,7 +83,7 @@ class PaymentProofsController extends Controller
 
     public function deleteTemp(Request $request)
     {
-        $proof_full_path = public_path() . '/' . $request->path;
+        $proof_full_path = public_path() . $request->path;
         $res = [
             'success' => false,
             'msg' => 'Delete failed'

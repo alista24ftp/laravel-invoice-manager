@@ -3,13 +3,13 @@
 
 @section('content')
   <h3 class="bg-primary p-1 m-1">Create Invoice</h3>
-  <form id="invoice_form" action="{{route('invoices.store')}}" method="POST">
+  <form id="invoice_form" action="{{route('invoices.store')}}" method="POST" enctype="multipart/form-data">
     @include('shared._error')
     {{csrf_field()}}
     <input type="hidden" name="op" value="create" />
 
     @foreach ($invoice->paymentProofs as $idx => $proof)
-      <input id="proof_{{$idx}}" class="proofs" type="hidden" name="proofs[{{$idx}}][path]" value="{{$proof->path}}" />
+      <input id="proofs_{{$idx}}" class="proofs" type="hidden" name="proofs[{{$idx}}][path]" value="{{$proof->path}}" />
     @endforeach
 
     @if(Cache::has('user_' . Auth::user()->id . '_invoice'))
@@ -38,13 +38,11 @@
           </div>
           <div class="col-4">
             <div class="form-group">
-              <label for="paid">Payment Status</label>
-              <div class="custom-control custom-switch">
-                <input class="custom-control-input" type="checkbox" id="paid" name="paid" value="{{$invoice->paid}}" {{$invoice->paid ? 'checked' : ''}}>
-                <label class="custom-control-label {{$invoice->paid ? 'paid' : 'unpaid'}}" id="pay_status" for="paid">
-                  {{$invoice->paid ? 'PAID' : 'UNPAID'}}
-                </label>
-              </div>
+              <label>Payment Status: {{$invoice->textPayStatus()}}</label>
+              <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#paymentModal">
+                Edit Payment
+              </button>
+              @include('invoices._edit_payment', ['invoice' => $invoice])
             </div>
           </div>
         </div>
@@ -524,6 +522,8 @@
 @section('customjs')
   <script src="//code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
   <script>
+    // CUSTOM FUNCTIONS
+    // Calculate total from orders
     function tallyTotals(){
       let totalAmount = 0;
       $('.product-total').each(function(index){
@@ -539,7 +539,158 @@
       return totalAmount;
     }
 
+    // DOM rendered
     $(document).ready(function(){
+      // initialize variables upon DOM render
+      var uploadedItems = document.getElementsByClassName('proofs'); // track items of uploaded payment proofs
+      var proofPaths = []; // proof image paths
+      for(let i=0; i<uploadedItems.length; i++){
+        proofPaths.push(uploadedItems[i].value); // get proof image paths
+      }
+      var formElement = document.getElementById('invoice_form');
+      /*
+      // already taken care of by blade foreach directive at the top of page
+      proofPaths.forEach(function(path, index){
+        // create hidden input item for each uploaded proof
+        let inputProof = document.createElement('input');
+        inputProof.id = 'proofs_' + index;
+        inputProof.classList.add('proofs');
+        inputProof.type = 'hidden';
+        inputProof.name = 'proofs[' + index + '][path]';
+        inputProof.value = path;
+        // add input item to form
+        formElement.appendChild(inputProof);
+      });*/
+
+      // when new payment proof is selected, add to list of proofs and render to DOM
+      $(document).on('change', '#upload_proof', function(e){
+        let newFilesToUpload = $(this)[0].files;
+        let fileToUpload = newFilesToUpload[0]; //.name;
+        if(!fileToUpload) return; // don't do anything if no file is chosen
+        // upload file via ajax
+        let formData = new FormData();
+        formData.append('upload_file', fileToUpload);
+        $.ajax({
+          method: "POST",
+          url: "{!! route('proofs.upload') !!}",
+          cache: false,
+          contentType: false,//'multipart/form-data',
+          processData: false,
+          headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+          },
+          data: formData
+        }).done(function(res){ // res: {success: true/false, imgPath: '/...', imgFullPath: 'http...'}
+          console.log(res);
+          if(res.success){ // upload success
+            // add input item to form
+            let inputProof = document.createElement('input');
+            let index = proofPaths.length;
+            inputProof.id = 'proofs_' + index;
+            inputProof.classList.add('proofs');
+            inputProof.type = 'hidden';
+            inputProof.name = 'proofs[' + index + '][path]';
+            inputProof.value = res.imgPath;
+            formElement.appendChild(inputProof);
+
+            // add newly uploaded image path to proofPaths
+            proofPaths.push(res.imgPath);
+
+            // create HTML elements for displaying uploaded image
+            let imgList = document.getElementById('preview');
+            let proofItem = document.createElement('div');
+            proofItem.id = 'preview_item_' + index;
+            proofItem.classList.add('preview_item');
+            let img = new Image(150, 150);
+            img.id = 'proof_img_' + index;
+            img.classList.add('proof_img');
+            img.alt = 'Image not found';
+            img.src = res.imgPath;//imgFullPath;
+            let removeBtn = document.createElement('a');
+            removeBtn.href = '#';
+            removeBtn.id = 'remove_proof_' + index;
+            removeBtn.classList.add('remove_proof');
+            removeBtn.innerText = "Remove";
+            // add HTML elements to DOM
+            proofItem.appendChild(img);
+            proofItem.appendChild(removeBtn);
+            imgList.appendChild(proofItem);
+
+            console.log(proofPaths);
+          }else{
+            alert(res.msg); // display error message
+          }
+        }).fail(function(err){
+          console.error(err);
+          alert('Unable to upload image');
+        });
+
+      });
+
+      // when remove proof button is clicked, remove proof from backend and DOM
+      $(document).on('click', '.remove_proof', function(e){
+        let proofId = $(this).attr('id'); // eg. remove_proof_1
+        let index = proofId.split('_').pop(); // eg. 1
+        let imgToRemove = proofPaths[index]; // eg. /uploads/images/temp/1234567890_abcdefghij.png
+        // remove from backend
+        $.ajax({
+          method: 'DELETE',
+          url: "{!! route('proofs.delete_temp') !!}",
+          headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+          },
+          data: {
+            path: imgToRemove
+          }
+        }).done(function(res){ // res: {success: true/false, msg: 'Delete success'/'Delete failed'}
+          console.log(res);
+          if(res.success){ // Delete successful
+            // Remove proof from proofPaths
+            proofPaths.splice(index, 1);
+
+            // Remove corresponding input element and update other proof input elements' ids and names
+            let inputToRemove = document.getElementById('proofs_' + index);
+            formElement.removeChild(inputToRemove);
+            let proofInputs = formElement.getElementsByClassName('proofs');
+            for(let i=0; i<proofInputs.length; i++){
+              let inputIdParts = proofInputs[i].id.split('_'); // eg. ['proofs', '2']
+              let inputIndex = inputIdParts.pop(); // eg. 2, inputIdParts -> ['proofs']
+              if(inputIndex > index){
+                // update element's id and name
+                inputIdParts.push(inputIndex-1); // inputIdParts -> ['proofs', 1]
+                proofInputs[i].id = inputIdParts.join('_'); // eg. proofs_1
+                proofInputs[i].name = 'proofs[' + (inputIndex - 1) + '][path]'; // eg. proofs[1][path]
+              }
+            }
+
+            // Remove corresponding image from display and update other images' ids
+            let itemToRemove = document.getElementById('preview_item_' + index);
+            itemToRemove.parentNode.removeChild(itemToRemove);
+            let displayItems = document.getElementsByClassName('preview_item');
+            for(let i=0; i<displayItems.length; i++){
+              let itemIndex = displayItems[i].id.split('_').pop();
+              if(itemIndex > index){
+                // update element's id
+                displayItems[i].id = 'preview_item_' + (itemIndex - 1);
+                // update img element id
+                let imgEl = document.getElementById('proof_img_' + itemIndex);
+                imgEl.id = 'proof_img_' + (itemIndex - 1);
+                // update remove element id
+                let removeProofEl = document.getElementById('remove_proof_' + itemIndex);
+                removeProofEl.id = 'remove_proof_' + (itemIndex - 1);
+              }
+            }
+          }else{
+            console.error(res.msg);
+            alert(res.msg);
+          }
+        }).fail(function(err){
+          console.error(err);
+          alert('Unable to delete image');
+        });
+        console.log(proofId);
+      });
+
       // toggle payment status
       $(document).on('change', '#paid', function(e){
         let oldPayStatus = $(this).val();
@@ -800,8 +951,60 @@
           .filter(entry => entry.name != '_method');
         //console.log(formEntries);
         $.post("{!! route('invoices.save') !!}", formEntries)
-          .done((res) => console.log(res))
-          .fail((err) => console.error(err));
+          .done(function(res){ // res -> {status: 1/2, msg: '...', proofs: [{path: '...', index: 0}], failed_proofs: [{path: '...', index: 1}]}
+            console.log(res);
+            // Update all proof paths
+            res.proofs.forEach(function(proof){
+              // Update corresponding entry in proofPaths array
+              proofPaths[proof.index] = proof.path;
+              // Update corresponding hidden proof input value
+              let proofInput = document.getElementById('proofs_' + proof.index);
+              proofInput.value = proof.path;
+              // Update corresponding preview item image src
+              let proofImg = document.getElementById('proof_img_' + proof.index);
+              proofImg.src = proof.path;
+            });
+
+            if(res.status == 2){ // Invoice saved but some proofs were not saved successfully
+              // Delete all failed proofs
+              let failedIndices = res.failed_proofs.map(function(proof){
+                return proof.index;
+              });
+              failedIndices.forEach(function(index){
+                // Remove corresponding proof path from proofPaths array
+                proofPaths[index] = undefined;
+                // Delete corresponding hidden proof input
+                let failedProofInput = document.getElementById('proofs_' + index);
+                formElement.removeChild(failedProofInput);
+                // Delete corresponding preview item
+                let failedProofItem = document.getElementById('preview_item_' + index);
+                failedProofItem.parentNode.removeChild(failedProofItem);
+              });
+              proofPaths = proofPaths.filter(function(path){
+                return path !== undefined;
+              });
+
+              // Update ids and names of remaining proof elements
+              let proofInputs = formElement.getElementsByClassName('proofs');
+              let proofItems = document.getElementsByClassName('preview_item');
+              let proofImgs = document.getElementsByClassName('proof_img');
+              let proofRemoveBtns = document.getElementsByClassName('remove_proof');
+              for(let i=0; i<proofPaths.length; i++){
+                proofInputs[i].id = 'proofs_' + i;
+                proofInputs[i].name = 'proofs[' + i + '][path]';
+                proofInputs[i].value = proofPaths[i];
+                proofItems[i].id = 'preview_item_' + i;
+                proofImgs[i].id = 'proof_img_' + i;
+                proofImgs[i].src = proofPaths[i];
+                proofRemoveBtns[i].id = 'remove_proof_' + i;
+              }
+            }
+            alert(res.msg);
+          })
+          .fail(function(err){
+            console.error(err);
+            alert(err);
+          });
       });
 
       // delete from progress
@@ -815,7 +1018,11 @@
         }).done(function(res){
           console.log(res);
           $('#progress_alert').alert('close');
-        }).fail((err) => console.error(err));
+          alert('Saved progress deleted successfully');
+        }).fail(function(err){
+          console.error(err);
+          alert('Unable to delete saved invoice');
+        });
       });
 
 

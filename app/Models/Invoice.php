@@ -99,6 +99,7 @@ class Invoice extends Model
     public function overdue()
     {
         if($this->paid) return false;
+        if(!$this->create_date) return false; // default: not overdue
 
         $term = $this->terms;
         $create_date = Carbon::createFromFormat('Y-m-d', $this->create_date);
