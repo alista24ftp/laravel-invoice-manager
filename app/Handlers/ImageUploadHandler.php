@@ -18,9 +18,9 @@ class ImageUploadHandler
             return false;
         }
 
-        // create saved directory pattern, such as: uploads/images/payment_proofs/201709/21/
+        // create saved directory pattern, such as: uploads/images/payment_proofs/201709/21
         // directory name separation allows for faster searching
-        $folder_name = "uploads/images/$folder" . ($date_prefix ? date("Ym/d", time()) . '/' : "");
+        $folder_name = "uploads/images/$folder" . ($date_prefix ? '/' . date("Ym/d", time()) : "");
 
         // absolute upload path, `public_path()` gets `public` directory's absolute path
         // eg. /home/vagrant/Code/invoicemanager/public/uploads/images/payment_proofs/201709/21/

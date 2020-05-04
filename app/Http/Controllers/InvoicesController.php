@@ -88,6 +88,9 @@ class InvoicesController extends Controller
     public function store(InvoiceFormRequest $request, Invoice $invoice)
     {
         $invoice->fill($request->all());
+        if(!isset($request->paid)){
+            $invoice->paid = 0;
+        }
         $invoice->save();
         $newOrders = [];
         foreach($request->orders as $order) {
@@ -162,6 +165,9 @@ class InvoicesController extends Controller
 
     public function update(InvoiceFormRequest $request, Invoice $invoice)
     {
+        if(!isset($request->paid)){
+            $invoice->paid = 0;
+        }
         $invoice->update($request->all());
         $invoice->orders()->delete();
         $newOrders = [];
@@ -189,6 +195,9 @@ class InvoicesController extends Controller
     {
         if($request->isXmlHttpRequest()){
             $invoiceFields = $request->except(['_method']);
+            if(!isset($request->paid)){
+                $invoiceFields['paid'] = 0;
+            }
             // Cache
             $cache_key = 'user_' . Auth::user()->id . '_invoice';
             // Remove any previously saved invoice

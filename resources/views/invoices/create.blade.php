@@ -688,7 +688,6 @@
           console.error(err);
           alert('Unable to delete image');
         });
-        console.log(proofId);
       });
 
       // toggle payment status
@@ -1018,10 +1017,10 @@
         }).done(function(res){
           console.log(res);
           $('#progress_alert').alert('close');
-          alert('Saved progress deleted successfully');
+          alert('Progress deleted successfully');
         }).fail(function(err){
           console.error(err);
-          alert('Unable to delete saved invoice');
+          alert('Unable to delete progress');
         });
       });
 

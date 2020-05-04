@@ -32,7 +32,7 @@ class InvoiceFormRequest extends FormRequest
             'via' => 'required|max:255',
             //'memo' => 'nullable',
             //'notes' => 'nullable',
-            'paid' => 'nullable|in:0,1',
+            'paid' => 'nullable|in:0,1', // nullable since paid checkbox won't submit values if unchecked
 
             // company info
             'company_name' => 'required|max:255',

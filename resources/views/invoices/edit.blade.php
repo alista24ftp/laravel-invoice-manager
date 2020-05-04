@@ -37,12 +37,10 @@
           <div class="col-4">
             <div class="form-group">
               <label for="paid">Payment Status</label>
-              <div class="custom-control custom-switch">
-                <input class="custom-control-input" type="checkbox" id="paid" name="paid" value="{{$invoice->paid}}" {{$invoice->paid ? 'checked' : ''}}>
-                <label class="custom-control-label {{$invoice->paid ? 'paid' : 'unpaid'}}" id="pay_status" for="paid">
-                  {{$invoice->paid ? 'PAID' : 'UNPAID'}}
-                </label>
-              </div>
+              <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#paymentModal">
+                Edit Payment
+              </button>
+              @include('invoices._edit_payment', ['invoice' => $invoice])
             </div>
           </div>
         </div>
@@ -520,6 +518,8 @@
 @section('customjs')
   <script src="//code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
   <script>
+    // CUSTOM FUNCTIONS
+    // Calculate total from orders
     function tallyTotals(){
       let totalAmount = 0;
       $('.product-total').each(function(index){
@@ -535,7 +535,85 @@
       return totalAmount;
     }
 
+    // DOM rendered
     $(document).ready(function(){
+      // when new payment proof is selected, add to list of proofs and render to DOM
+      $(document).on('change', '#upload_proof', function(e){
+        let invoiceNo = document.getElementById('invoice_no').value;
+        let newFilesToUpload = $(this)[0].files;
+        let fileToUpload = newFilesToUpload[0]; //.name;
+        if(!fileToUpload) return; // don't do anything if no file is chosen
+        // upload file via ajax
+        let formData = new FormData();
+        formData.append('upload_file', fileToUpload);
+        formData.append('invoice_no', invoiceNo);
+        $.ajax({
+          method: "POST",
+          url: "{!! route('proofs.upload') !!}",
+          cache: false,
+          contentType: false,//'multipart/form-data',
+          processData: false,
+          headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+          },
+          data: formData
+        }).done(function(res){ // res: {success: true/false, imgPath: '/...', imgFullPath: 'http...', id: proofId}
+          console.log(res);
+          if(res.success){ // upload success
+            // add preview proof item to DOM with proof image and remove button
+            let imgList = document.getElementById('preview');
+            let previewItem = document.createElement('div');
+            previewItem.id = 'preview_item_' + res.id;
+            previewItem.classList.add('preview_item');
+            let proofImg = new Image(150, 150);
+            proofImg.id = 'proof_img_' + res.id;
+            proofImg.src = res.imgPath;
+            proofImg.classList.add('proof_img');
+            proofImg.alt = 'Image not found';
+            let removeProof = document.createElement('a');
+            removeProof.id = 'remove_proof_' + res.id;
+            removeProof.classList.add('remove_proof');
+            removeProof.href = '#';
+            removeProof.innerText = "Remove";
+            previewItem.appendChild(proofImg);
+            previewItem.appendChild(removeProof);
+            imgList.appendChild(previewItem);
+          }else{ // upload unsuccessful
+            alert(res.msg); // display message
+          }
+        }).fail(function(err){
+          console.error(err);
+          alert(err);
+        });
+      });
+
+      // remove payment proof when remove button is clicked
+      $(document).on('click', '.remove_proof', function(e){
+        let removeId = $(this).attr('id').split('_').pop(); // eg. 3
+        // Delete payment proof from backend via ajax
+        let url = "{!! route('proofs.delete', 'placeholderId') !!}"; // url -> '/deleteurl/placeholderId'
+        url = url.replace('placeholderId', removeId); // url -> '/deleteurl/3'
+        $.ajax({
+          url: url,
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+          }
+        }).done(function(res){ // res -> {success: true/false, msg: 'Delete success'/'Delete failed'}
+          console.log(res);
+          if(res.success){
+            // remove corresponding proof preview display
+            let previewItem = document.getElementById('preview_item_' + removeId);
+            previewItem.parentNode.removeChild(previewItem);
+          }else{ // delete proof failed
+            alert(res.msg);
+          }
+        }).fail(function(err){
+          console.error(err);
+          alert(err);
+        });
+      });
+
       // toggle payment status
       $(document).on('change', '#paid', function(e){
         let oldPayStatus = $(this).val();
@@ -796,8 +874,14 @@
           .filter(entry => entry.name != '_method');
         //console.log(formEntries);
         $.post("{!! route('invoices.save') !!}", formEntries)
-          .done((res) => console.log(res))
-          .fail((err) => console.error(err));
+          .done(function(res){ // progress saved successfully, res -> {status: 1, msg: 'Invoice saved successfully'}
+            console.log(res);
+            alert(res.msg);
+          })
+          .fail(function(err){
+            console.error(err);
+            alert(err);
+          });
       });
 
       // delete from progress
@@ -811,7 +895,11 @@
         }).done(function(res){
           console.log(res);
           $('#progress_alert').alert('close');
-        }).fail((err) => console.error(err));
+          alert('Progress deleted successfully');
+        }).fail(function(err){
+          console.error(err);
+          alert('Unable to delete progress');
+        });
       });
     });
 

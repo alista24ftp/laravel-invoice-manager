@@ -13,7 +13,7 @@
           <div class="form-group">
             <label for="paid">Payment Status</label>
             <div class="custom-control custom-switch">
-              <input class="custom-control-input" id="paid" name="paid" type="checkbox" value="{{$invoice->paid}}"
+              <input class="custom-control-input" id="paid" name="paid" type="checkbox" value="{{$invoice->paid ? $invoice->paid : 0}}"
                 {{$invoice->paid ? 'checked' : ''}}>
               <label class="custom-control-label {{$invoice->paid ? 'paid' : 'unpaid'}}" id="pay_status" for="paid">
                 {{$invoice->textPayStatus()}}
@@ -30,10 +30,10 @@
 
         <div id="preview" class="row d-flex flex-row flex-wrap">
           @foreach ($invoice->paymentProofs as $proof_idx => $proof)
-            <div id="preview_item_{{$proof_idx}}" class="preview_item">
+            <div id="preview_item_{{$proof->id ? $proof->id : $proof_idx}}" class="preview_item">
               <img src="{{$proof->path}}" alt="Image not found"
-                id="proof_img_{{$proof_idx}}" class="proof_img" width="150" height="150">
-              <a href="#" id="remove_proof_{{$proof_idx}}" class="remove_proof">Remove</a>
+                id="proof_img_{{$proof->id ? $proof->id : $proof_idx}}" class="proof_img" width="150" height="150">
+              <a href="#" id="remove_proof_{{$proof->id ? $proof->id : $proof_idx}}" class="remove_proof">Remove</a>
             </div>
           @endforeach
         </div>

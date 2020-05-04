@@ -11,7 +11,7 @@ class Order extends Model
         'invoice_no', 'product', 'price', 'quantity', 'discount', 'total',
     ];
 
-    public $timestamps = false;
+    public $timestamps = false; // removes 'created_at', 'updated_at' timestamps added by default
 
     public function invoice()
     {
