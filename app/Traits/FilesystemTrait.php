@@ -50,7 +50,11 @@ trait FilesystemTrait
             $filename = pathinfo($fullFilePath, PATHINFO_BASENAME); // eg. 1234567890_abcdefghij.png
             $newFilePath = $toDirPath . '/' . $filename; // eg. /uploads/todir/1234567890_abcdefghij.png
             $newFullFilePath = public_path() . $newFilePath;
-            if(rename($fullFilePath, $newFullFilePath)){
+            if(strcmp($fullFilePath, $newFullFilePath) == 0){
+                // if original and new file paths are the same, then they're automatically assume to be moved successfully
+                array_push($result['newPaths'], ['path' => $newFilePath, 'index' => $file['index']]);
+            }
+            elseif(rename($fullFilePath, $newFullFilePath)){
                 // successfully moved
                 array_push($result['newPaths'], ['path' => $newFilePath, 'index' => $file['index']]);
             }else{

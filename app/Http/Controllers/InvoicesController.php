@@ -320,14 +320,4 @@ class InvoicesController extends Controller
         }
         abort(404);
     }
-
-    public function pay(Invoice $invoice)
-    {
-        return view('invoices.pay', compact('invoice'));
-    }
-
-    public function payModify(Invoice $invoice, Request $request)
-    {
-        //
-    }
 }

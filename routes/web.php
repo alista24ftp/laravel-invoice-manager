@@ -21,8 +21,6 @@ Route::get('invoices/{invoice}/edit', 'InvoicesController@edit')->name('invoices
 Route::put('invoices/{invoice}', 'InvoicesController@update')->name('invoices.update');
 //Route::get('invoices/{invoice}/duplicate', 'InvoicesController@duplicate')->name('invoices.duplicate');
 Route::get('invoices/{invoice}/duplicate', 'InvoicesController@create')->name('invoices.duplicate');
-Route::get('invoices/{invoice}/pay', 'InvoicesController@pay')->name('invoices.pay');
-Route::post('invoices/{invoice}/pay', 'InvoicesController@payModify')->name('invoices.pay_modify');
 Route::delete('invoices/delete_progress', 'InvoicesController@deleteProgress')->name('invoices.delete_progress');
 
 Route::post('proofs', 'PaymentProofsController@store')->name('proofs.upload');
