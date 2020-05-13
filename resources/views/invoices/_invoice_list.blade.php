@@ -36,13 +36,6 @@
               <i class="far fa-clipboard"></i>
               Duplicate
             </a>
-            @if(!$invoice->paid)
-              <span>|</span>
-              <a href="{{route('invoices.pay', $invoice->invoice_no)}}" class="text-secondary">
-                <i class="far fa-dollar-sign"></i>
-                Pay
-              </a>
-            @endif
           </small>
         </div>
       </li>

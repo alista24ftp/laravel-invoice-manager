@@ -14,6 +14,7 @@
 Route::get('/', 'InvoicesController@index')->name('invoices.index');
 Route::get('invoices/create', 'InvoicesController@create')->name('invoices.create'); // very important to put this here (above invoices.show route)
 Route::get('invoices/restore', 'InvoicesController@restoreProgress')->name('invoices.restore');
+Route::get('invoices/getspreadsheet/{invoice}', 'InvoicesController@getSpreadsheet')->name('invoices.getspreadsheet');
 Route::get('invoices/{invoice}', 'InvoicesController@show')->name('invoices.show');
 Route::post('invoices', 'InvoicesController@store')->name('invoices.store');
 Route::post('invoices/save', 'InvoicesController@saveProgress')->name('invoices.save');

@@ -117,6 +117,12 @@ class Invoice extends Model
         return false;
     }
 
+    public function createDateFormat()
+    {
+        $dt = Carbon::createFromFormat('Y-m-d', $this->create_date);
+        return $dt->toFormattedDateString(); // eg. Dec 25, 1975
+    }
+
     public function textPayStatus()
     {
         return $this->paid ? 'PAID' : ($this->overdue() ? 'OVERDUE' : 'UNPAID');

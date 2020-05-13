@@ -15,6 +15,7 @@ use App\Models\Product;
 use App\Models\Tax;
 use App\Models\PaymentProof;
 use App\Traits\FilesystemTrait;
+use App\Handlers\SpreadsheetHandler;
 
 class InvoicesController extends Controller
 {
@@ -319,5 +320,11 @@ class InvoicesController extends Controller
             return abort(500, 'Unable to delete saved invoice progress');
         }
         abort(404);
+    }
+
+    // Create and return invoice spreadsheet
+    public function getSpreadsheet(Invoice $invoice, SpreadsheetHandler $handler)
+    {
+        $handler->outputExcelInvoice($invoice);
     }
 }
