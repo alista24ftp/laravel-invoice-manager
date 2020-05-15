@@ -16,7 +16,7 @@
       </div>
       <div class="row d-flex justify-content-center">
         <div class="col-5 text-center">
-          <div class="text-wrap">CELL: {{$invoice->company_contact_tel}} {{strtoupper($invoice->company_contact_fname)}}</div>
+          <div class="text-wrap">CELL: {{$invoice->company_contact_cell ? $invoice->company_contact_cell : $invoice->company_contact_tel}} {{strtoupper($invoice->company_contact_fname)}}</div>
           <div class="text-wrap">TOLL FREE: {{$invoice->company_tollfree ? $invoice->company_tollfree : 'N/A'}}</div>
         </div>
         <div class="col-5 text-center">
@@ -161,7 +161,7 @@
           <p class="text-wrap">AMOUNT</p>
         </div>
         <div class="col-2 border-right border-bottom">
-          <p class="text-wrap">{{'$'.round($invoice->orders->sum('total'), 2)}}</p>
+          <p class="text-wrap">{{'$'.number_format(round($invoice->orders->sum('total'), 2), 2)}}</p>
         </div>
       </div>
       <!-- Tax -->
@@ -181,7 +181,7 @@
           </p>
         </div>
         <div class="col-2 border-right border-bottom">
-          <p class="text-wrap">{{'$'.round($invoice->orders->sum('total') * ($invoice->tax_rate / 100), 2)}}</p>
+          <p class="text-wrap">{{'$'.number_format(round($invoice->orders->sum('total') * ($invoice->tax_rate / 100), 2), 2)}}</p>
         </div>
       </div>
       <!-- Freight -->
@@ -199,7 +199,7 @@
           <p class="text-wrap">FREIGHT</p>
         </div>
         <div class="col-2 border-right border-bottom">
-          <p class="text-wrap">{{$invoice->freight ? '$'.round($invoice->freight, 2) : '$0.00'}}</p>
+          <p class="text-wrap">{{$invoice->freight ? '$'.number_format(round($invoice->freight, 2), 2) : '$0.00'}}</p>
         </div>
       </div>
       <!-- Total Amount -->
@@ -217,7 +217,7 @@
           <p class="text-wrap"><strong>TOTAL</strong></p>
         </div>
         <div class="col-2 border-right border-bottom">
-          <p class="text-wrap"><strong>{{'$'.$invoice->totalAmount()}}</strong></p>
+          <p class="text-wrap"><strong>{{'$'.number_format($invoice->totalAmount(), 2)}}</strong></p>
         </div>
       </div>
 

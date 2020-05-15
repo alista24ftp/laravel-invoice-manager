@@ -22,7 +22,7 @@
             @endif
           </div>
           <div class="media-body">
-            <p>${{$invoice->totalAmount()}}</p>
+            <p>${{number_format($invoice->totalAmount(), 2)}}</p>
             <p>Contact: {{$invoice->customer_contact1}}</p>
             <p>Created: {{$invoice->create_date}}</p>
           </div>
