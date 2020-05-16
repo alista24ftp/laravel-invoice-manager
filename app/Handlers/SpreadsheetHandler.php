@@ -173,12 +173,16 @@ class SpreadsheetHandler
                 'width'=>$this->colWidths['F']+$this->colWidths['G']+$this->colWidths['H']
             ],
         ];
+        $maxRowHeights = [];
         foreach($customer_info as $result_cell => $info){
             $rows = $this->getRowsFromVal($info['val'], $info['width']);
             $height = $this->defaultRowHeight * $rows;
             $row = $sheet->getCell($result_cell)->getRow();
             $sheet->setCellValue($result_cell, $info['val']);
-            $sheet->getRowDimension($row)->setRowHeight($height);
+            if(!array_key_exists($row, $maxRowHeights) || $height > $maxRowHeights[$row]){
+                $sheet->getRowDimension($row)->setRowHeight($height);
+                $maxRowHeights[$row] = $height;
+            }
             $sheet->getStyle($info['merge'])->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
             $sheet->mergeCells($info['merge']);
             $sheet->getStyle($info['merge'])->getAlignment()->setWrapText(true);
