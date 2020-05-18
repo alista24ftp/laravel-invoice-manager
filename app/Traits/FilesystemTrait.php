@@ -65,4 +65,59 @@ trait FilesystemTrait
 
         return $result;
     }
+
+    // eg. $dir -> /uploads/images/temp
+    // eg. $criteria => ['funcA' => function($filename){if...return true;}, 'funcB'=>function($filename){if...return true;}]
+    // eg. $res = ['removed'=>['/uploads/images/temp/2.jpg'], 'failed'=>['/uploads/images/temp/3.jpeg']]
+    public function removeFilesFromDir($dir, $criteria=null, &$res)
+    {
+        $fullDirPath = public_path() . $dir;
+        if(!file_exists($fullDirPath) || !is_dir($fullDirPath)) return false;
+        //chmod($fullDirPath, 0777);
+        $subfiles = glob($fullDirPath . '/*');
+        $result = true;
+        foreach($subfiles as $file){ // eg. $file -> FULLPATH/uploads/images/temp/1.png
+            $filename = $dir . '/' . pathinfo($file, PATHINFO_BASENAME); // eg. /uploads/images/temp/1.png
+            if(!file_exists($file)){
+                $result = true;
+            }else if(is_dir($file)){
+                $removeResult = $this->removeFilesFromDir($filename, $criteria, $res);
+                if(!$removeResult){
+                    $result = false;
+                }
+            }else{ // is_file($file) == true
+                $removeResult = $this->removeFile($filename, $criteria, $res);
+                if(!$removeResult){
+                    $result = false;
+                }
+            }
+        }
+        return $result;
+    }
+
+    public function removeFile($filename, $criteria=null, &$res)
+    {
+        $fullFilePath = public_path() . $filename;
+        if(!file_exists($fullFilePath) || !is_file($fullFilePath)) return false;
+        $result = true;
+        if($this->fulfilledCriteria($fullFilePath, $criteria)){
+            chmod($fullFilePath, 0777);
+            if(unlink($fullFilePath)){
+                array_push($res['removed'], $filename);
+            }else{
+                array_push($res['failed'], $filename);
+                $result = false;
+            }
+        }
+        return $result;
+    }
+
+    private function fulfilledCriteria($fullFilePath, $criteria=null)
+    {
+        if(is_null($criteria) || count($criteria) == 0) return true;
+        foreach($criteria as $criterion){
+            if(!$criterion($fullFilePath)) return false;
+        }
+        return true;
+    }
 }

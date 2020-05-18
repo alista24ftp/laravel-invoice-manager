@@ -89,6 +89,7 @@ class InvoicesTableSeeder extends Seeder
     protected function cleanUp()
     {
         $this->deleteAllImgs(public_path() . '/uploads/images/payment_proofs');
+        $this->deleteAllImgs(public_path() . '/uploads/images/saved');
         $this->deleteAllImgs(public_path() . '/uploads/images/temp');
     }
 }
