@@ -27,8 +27,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('remove:temp_imgs')
             ->daily()
             ->withoutOverlapping()
-            ->runInBackground()
-            ->appendOutputTo(storage_path('logs/remove-temp-imgs-' . date('Ymd', time()) . '.log'));
+            ->runInBackground();
+            //->appendOutputTo(storage_path('logs/remove-temp-imgs-' . date('Ymd', time()) . '.log'));
     }
 
     /**

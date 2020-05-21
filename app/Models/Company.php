@@ -18,6 +18,8 @@ class Company extends Model
 
     protected $hidden = [];
 
+    public $timestamps = false;
+
     public function invoices()
     {
         return $this->hasMany(Invoice::class);

@@ -45,6 +45,7 @@ Route::get('sales', 'SalesController@index')->name('sales.index');
 Route::get('users/{user}/edit', 'UsersController@edit')->name('users.edit');
 
 Route::get('companies/{company}/edit', 'CompaniesController@edit')->name('companies.edit');
+Route::put('companies/{company}', 'CompaniesController@update')->name('companies.update');
 
 Route::get('products', 'ProductsController@index')->name('products.index');
 Route::get('products/selections', 'ProductsController@selections')->name('products.selections');

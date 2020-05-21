@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Auth;
 use App\Models\Company;
+use App\Http\Requests\CompanyFormRequest;
 
 class CompaniesController extends Controller
 {
@@ -21,6 +22,7 @@ class CompaniesController extends Controller
     public function update(CompanyFormRequest $request, Company $company)
     {
         $company->update($request->all());
-        return redirect()->to(route('companies.edit'))->with('success', 'Company info updated successfully');
+        return redirect()->to(route('companies.edit', $company->id))
+            ->with('success', 'Company info updated successfully');
     }
 }
