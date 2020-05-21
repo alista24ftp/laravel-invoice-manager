@@ -17,4 +17,10 @@ class CompaniesController extends Controller
     {
         return view('companies.edit', compact('company'));
     }
+
+    public function update(CompanyFormRequest $request, Company $company)
+    {
+        $company->update($request->all());
+        return redirect()->to(route('companies.edit'))->with('success', 'Company info updated successfully');
+    }
 }

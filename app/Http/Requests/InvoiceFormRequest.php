@@ -26,7 +26,7 @@ class InvoiceFormRequest extends FormRequest
         $rules = [
             // invoice info
             'create_date' => 'required|regex:/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/',
-            'sales_rep' => 'nullable|max:65',
+            'sales_rep' => 'nullable|max:65|regex:/^[A-Z][A-Za-z \-\'\.]*$/i',
             'po_no' => 'required|max:255',
             'terms' => 'required|max:255',
             'via' => 'required|max:255',
@@ -45,8 +45,8 @@ class InvoiceFormRequest extends FormRequest
             'company_fax' => 'nullable|min:10|max:11|regex:/^[0-9]{10,11}$/i',
             'company_tel' => 'required|min:10|max:11|regex:/^[0-9]{10,11}$/i',
             'company_tollfree' => 'nullable|min:10|max:11|regex:/^[0-9]{10,11}$/i',
-            'company_contact_fname' => 'required|max:30|regex:/^[A-Za-z \-\']+$/i',
-            'company_contact_lname' => 'nullable|max:30|regex:/^[A-Za-z \-\']+$/i',
+            'company_contact_fname' => 'required|max:30|regex:/^[A-Z][A-Za-z \-\'\.]*$/i',
+            'company_contact_lname' => 'nullable|max:30|regex:/^[A-Z][A-Za-z \-\'\.]*$/i',
             'company_contact_tel' => 'required|min:10|max:11|regex:/^[0-9]{10,11}$/i',
             'company_contact_cell' => 'nullable|min:10|max:11|regex:/^[0-9]{10,11}$/i',
             'company_contact_email' => 'nullable|max:255|email',
@@ -65,8 +65,8 @@ class InvoiceFormRequest extends FormRequest
             'ship_postal' => 'required|size:6|regex:/^[A-Za-z][0-9][A-Za-z][0-9][A-Za-z][0-9]$/i',
             'customer_tel' => 'required|min:10|max:11|regex:/^[0-9]{10,11}$/i',
             'customer_fax' => 'nullable|min:10|max:11|regex:/^[0-9]{10,11}$/i',
-            'customer_contact1' => 'required|max:30|regex:/^[A-Za-z \-\']+$/i',
-            'customer_contact2' => 'nullable|max:30|regex:/^[A-Za-z \-\']+$/i',
+            'customer_contact1' => 'required|max:30|regex:/^[A-Z][A-Za-z \-\'\.]*$/i',
+            'customer_contact2' => 'nullable|max:30|regex:/^[A-Z][A-Za-z \-\'\.]*$/i',
 
             // order info
             'tax_rate' => 'nullable|numeric|min:0.000|max:99.999',
