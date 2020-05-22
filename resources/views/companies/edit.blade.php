@@ -62,15 +62,17 @@
           <div class="form-row">
             <div class="form-group col-4">
               <label for="tel">Company Tel</label>
-              <input type="text" class="form-control" id="tel" name="tel" value="{{old('tel', $company->tel)}}" />
+              <input type="text" class="form-control" id="tel" name="tel" maxlength="11"
+                value="{{old('tel', $company->tel)}}" />
             </div>
             <div class="form-group col-4">
               <label for="fax">Company Fax</label>
-              <input type="text" class="form-control" id="fax" name="fax" value="{{old('fax', $company->fax)}}" />
+              <input type="text" class="form-control" id="fax" name="fax" maxlength="11"
+                value="{{old('fax', $company->fax)}}" />
             </div>
             <div class="form-group col-4">
               <label for="toll_free">Toll Free</label>
-              <input type="text" class="form-control" id="toll_free" name="toll_free"
+              <input type="text" class="form-control" id="toll_free" name="toll_free" maxlength="11"
                 value="{{old('toll_free', $company->toll_free)}}" />
             </div>
           </div>
@@ -78,12 +80,12 @@
           <div class="form-row">
             <div class="form-group col-4">
               <label for="contact1_firstname">First Name</label>
-              <input type="text" class="form-control" id="contact1_firstname" name="contact1_firstname"
+              <input type="text" class="form-control" id="contact1_firstname" name="contact1_firstname" maxlength="30"
                 value="{{old('contact1_firstname', $company->contact1_firstname)}}" />
             </div>
             <div class="form-group col-4">
               <label for="contact1_lastname">Last Name</label>
-              <input type="text" class="form-control" id="contact1_lastname" name="contact1_lastname"
+              <input type="text" class="form-control" id="contact1_lastname" name="contact1_lastname" maxlength="30"
                 value="{{old('contact1_lastname', $company->contact1_lastname)}}" />
             </div>
             <div class="form-group col-4">
@@ -95,7 +97,7 @@
           <div class="form-row">
             <div class="form-group col-4">
               <label for="contact1_tel">Tel</label>
-              <input type="text" class="form-control" id="contact1_tel" name="contact1_tel"
+              <input type="text" class="form-control" id="contact1_tel" name="contact1_tel" maxlength="11"
                 value="{{old('contact1_tel', $company->contact1_tel)}}" />
             </div>
             <div class="form-group col-4">
@@ -105,7 +107,7 @@
             </div>
             <div class="form-group col-4">
               <label for="contact1_cell">Cell</label>
-              <input type="text" class="form-control" id="contact1_cell" name="contact1_cell"
+              <input type="text" class="form-control" id="contact1_cell" name="contact1_cell" maxlength="11"
                 value="{{old('contact1_cell', $company->contact1_cell)}}" />
             </div>
           </div>
@@ -113,12 +115,12 @@
           <div class="form-row">
             <div class="form-group col-4">
               <label for="contact2_firstname">First Name</label>
-              <input type="text" class="form-control" id="contact2_firstname" name="contact2_firstname"
+              <input type="text" class="form-control" id="contact2_firstname" name="contact2_firstname" maxlength="30"
                 value="{{old('contact2_firstname', $company->contact2_firstname)}}" />
             </div>
             <div class="form-group col-4">
               <label for="contact2_lastname">Last Name</label>
-              <input type="text" class="form-control" id="contact2_lastname" name="contact2_lastname"
+              <input type="text" class="form-control" id="contact2_lastname" name="contact2_lastname" maxlength="30"
                 value="{{old('contact2_lastname', $company->contact2_lastname)}}" />
             </div>
             <div class="form-group col-4">
@@ -130,7 +132,7 @@
           <div class="form-row">
             <div class="form-group col-4">
               <label for="contact2_tel">Tel</label>
-              <input type="text" class="form-control" id="contact2_tel" name="contact2_tel"
+              <input type="text" class="form-control" id="contact2_tel" name="contact2_tel" maxlength="11"
                 value="{{old('contact2_tel', $company->contact2_tel)}}" />
             </div>
             <div class="form-group col-4">
@@ -140,7 +142,7 @@
             </div>
             <div class="form-group col-4">
               <label for="contact2_cell">Cell</label>
-              <input type="text" class="form-control" id="contact2_cell" name="contact2_cell"
+              <input type="text" class="form-control" id="contact2_cell" name="contact2_cell" maxlength="11"
                 value="{{old('contact2_cell', $company->contact2_cell)}}" />
             </div>
           </div>
