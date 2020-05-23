@@ -2,7 +2,7 @@
 @section('title', 'Sales Reps')
 
 @section('content')
-  <h1 class="h1 text-center text-white bg-primary mt-5">Sales Reps</h1>
+  <h1 class="h1 text-center text-white bg-primary mt-1">Sales Reps</h1>
   <form action="{{route('sales.index')}}" method="GET">
     <div class="card">
       <h5 class="card-header">Filter Sales Reps</h5>

@@ -62,6 +62,11 @@ Route::put('companies/{company}', 'CompaniesController@update')->name('companies
 
 // Product Routes
 Route::get('products', 'ProductsController@index')->name('products.index');
+Route::get('products/create', 'ProductsController@create')->name('products.create');
+Route::post('products', 'ProductsController@store')->name('products.store');
+Route::get('products/{product}/edit', 'ProductsController@edit')->name('products.edit');
+Route::put('products/{product}', 'ProductsController@update')->name('products.update');
+Route::delete('products/{product}', 'ProductsController@destroy')->name('products.destroy');
 Route::get('products/selections', 'ProductsController@selections')->name('products.selections');
 
 // Shipping Options Routes

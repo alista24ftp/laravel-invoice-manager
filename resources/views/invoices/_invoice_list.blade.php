@@ -45,7 +45,7 @@
     @endforeach
   </ul>
 @else
-  <div class="empty-block">
+  <div class="bg-secondary p-3 text-center text-white">
     No invoices found
   </div>
 @endif

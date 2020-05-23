@@ -12,7 +12,7 @@
   @endif
 
     <div class="card">
-      <h1 class="card-header">Sales Rep Info</h1>
+      <h5 class="card-header">Sales Rep Info</h5>
       <div class="card-body">
         {{csrf_field()}}
         <div class="form-row">
@@ -43,7 +43,7 @@
           </div>
         </div>
       </div>
-      <div class="card-footer row">
+      <div class="card-footer row mx-0">
         <div class="col-6 text-right">
           <a href="{{route('sales.index')}}" class="btn btn-outline-secondary">Cancel</a>
         </div>
