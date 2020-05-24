@@ -71,6 +71,11 @@ Route::get('products/selections', 'ProductsController@selections')->name('produc
 
 // Shipping Options Routes
 Route::get('shipping', 'ShippingController@index')->name('shipping.index');
+Route::get('shipping/create', 'ShippingController@create')->name('shipping.create');
+Route::post('shipping', 'ShippingController@store')->name('shipping.store');
+Route::get('shipping/{opt}/edit', 'ShippingController@edit')->name('shipping.edit');
+Route::put('shipping/{opt}', 'ShippingController@update')->name('shipping.update');
+Route::delete('shipping/{opt}', 'ShippingController@destroy')->name('shipping.destroy');
 
 // Payment Terms Routes
 Route::get('terms', 'TermsController@index')->name('terms.index');

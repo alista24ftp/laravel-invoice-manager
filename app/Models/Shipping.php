@@ -11,4 +11,6 @@ class Shipping extends Model
     protected $fillable = [
         'option'
     ];
+
+    public $timestamps = false;
 }
