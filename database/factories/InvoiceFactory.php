@@ -27,12 +27,13 @@ $factory->define(Invoice::class, function (Faker $faker) {
         'sales_rep' => $sales_rep ? ($sales_rep->firstname . ' ' . $sales_rep->lastname) : null,
         'po_no' => $faker->numberBetween(1000, 99999),
         'terms' => $term->option,
+        'terms_period' => $term->period,
         'via' => $via->option,
         'memo' => intval($faker->randomDigitNotNull()) % 2 == 0 ? null : $faker->sentence(),
         'notes' => intval($faker->randomDigitNotNull()) % 2 == 0 ? null : $faker->sentence(),
         'paid' => intval($faker->randomDigitNotNull()) % 2 == 0,
 
-        'company_id' => $company->id,
+        //'company_id' => $company->id,
         'company_name' => $company->company_name,
         'company_mail_addr' => $company->mail_addr,
         'company_mail_postal' => $company->mail_postal,
@@ -50,7 +51,7 @@ $factory->define(Invoice::class, function (Faker $faker) {
         'company_contact_email' => $company->contact1_email,
         'company_tax_reg' => $company->tax_reg,
 
-        'customer_id' => $customer->id,
+        //'customer_id' => $customer->id,
         'bill_name' => $customer->bill_name,
         'bill_addr' => $customer->bill_addr,
         'bill_prov' => $customer->bill_prov,

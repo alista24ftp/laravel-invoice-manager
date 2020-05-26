@@ -79,6 +79,11 @@ Route::delete('shipping/{opt}', 'ShippingController@destroy')->name('shipping.de
 
 // Payment Terms Routes
 Route::get('terms', 'TermsController@index')->name('terms.index');
+Route::get('terms/create', 'TermsController@create')->name('terms.create');
+Route::post('terms', 'TermsController@store')->name('terms.store');
+Route::get('terms/{term}/edit', 'TermsController@edit')->name('terms.edit');
+Route::put('terms/{term}', 'TermsController@update')->name('terms.update');
+Route::delete('terms/{term}', 'TermsController@destroy')->name('terms.destroy');
 
 // Tax Options Routes
 Route::get('taxes', 'TaxesController@index')->name('taxes.index');

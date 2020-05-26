@@ -13,8 +13,8 @@ class Invoice extends Model
     protected $primaryKey = 'invoice_no';
 
     protected $fillable = [
-        'invoice_no', 'create_date', 'sales_rep', 'po_no', 'terms', 'via', 'memo', 'notes', 'paid',
-        'company_id',
+        'invoice_no', 'create_date', 'sales_rep', 'po_no', 'terms', 'terms_period', 'via', 'memo', 'notes', 'paid',
+        //'company_id',
         'company_name', 'company_mail_addr', 'company_mail_postal',
         'company_email', 'company_website',
         'company_ware_addr', 'company_ware_postal',
@@ -22,7 +22,7 @@ class Invoice extends Model
         'company_contact_fname', 'company_contact_lname',
         'company_contact_tel', 'company_contact_cell', 'company_contact_email',
         'company_tax_reg',
-        'customer_id',
+        //'customer_id',
         'bill_name', 'bill_addr', 'bill_prov', 'bill_city', 'bill_postal',
         'ship_name', 'ship_addr', 'ship_prov', 'ship_city', 'ship_postal',
         'customer_tel', 'customer_fax', 'customer_contact1', 'customer_contact2',
@@ -131,16 +131,6 @@ class Invoice extends Model
     public function orders()
     {
         return $this->hasMany(Order::class, 'invoice_no', 'invoice_no');
-    }
-
-    public function company()
-    {
-        return $this->belongsTo(Company::class);
-    }
-
-    public function customer()
-    {
-        return $this->belongsTo(Customer::class);
     }
 
     public function paymentProofs()

@@ -46,7 +46,8 @@ class InvoicesController extends Controller
             ->filterByInvoiceNo($invoice_no)
             ->filterByProv($prov)
             ->filterByCust($cust_search)
-            ->withOrder($order_by)->with('orders')
+            ->withOrder($order_by)
+            ->with('orders')
             ->paginate(10);
 
         return view('invoices.index', compact('invoices',

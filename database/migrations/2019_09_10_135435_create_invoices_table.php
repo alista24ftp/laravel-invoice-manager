@@ -20,13 +20,14 @@ class CreateInvoicesTable extends Migration
             $table->string('sales_rep', 65)->nullable();
             $table->string('po_no');
             $table->string('terms');
+            $table->integer('terms_period')->nullable();
             $table->string('via');
             $table->text('memo')->nullable();
             $table->text('notes')->nullable();
             $table->boolean('paid')->default(false);
 
             // Company snapshot
-            $table->bigInteger('company_id');
+            //$table->bigInteger('company_id');
             $table->string('company_name');
             $table->string('company_mail_addr');
             $table->string('company_mail_postal', 6);
@@ -45,7 +46,7 @@ class CreateInvoicesTable extends Migration
             $table->string('company_tax_reg');
 
             // Customer snapshot
-            $table->bigInteger('customer_id');
+            //$table->bigInteger('customer_id');
             $table->string('bill_name');
             $table->string('bill_addr');
             $table->string('bill_prov', 2);

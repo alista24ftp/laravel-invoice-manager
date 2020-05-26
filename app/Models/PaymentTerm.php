@@ -9,6 +9,8 @@ class PaymentTerm extends Model
     protected $table = 'terms';
 
     protected $fillable = [
-        'option',
+        'option', 'period'
     ];
+
+    public $timestamps = false;
 }

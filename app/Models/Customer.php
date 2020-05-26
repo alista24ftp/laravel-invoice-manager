@@ -36,9 +36,4 @@ class Customer extends Model
         if($order == 5) return $query->orderBy('contact1_tel', 'desc');
         return $query->orderBy('bill_name');
     }
-
-    public function invoices()
-    {
-        return $this->hasMany(Invoice::class);
-    }
 }
