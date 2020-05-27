@@ -11,4 +11,6 @@ class Tax extends Model
     protected $fillable = [
         'province', 'description', 'rate',
     ];
+
+    public $timestamps = false;
 }

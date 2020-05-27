@@ -87,3 +87,5 @@ Route::delete('terms/{term}', 'TermsController@destroy')->name('terms.destroy');
 
 // Tax Options Routes
 Route::get('taxes', 'TaxesController@index')->name('taxes.index');
+Route::get('taxes/{tax}/edit', 'TaxesController@edit')->name('taxes.edit');
+Route::put('taxes/{tax}', 'TaxesController@update')->name('taxes.update');
