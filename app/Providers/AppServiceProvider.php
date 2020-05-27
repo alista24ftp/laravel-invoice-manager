@@ -13,7 +13,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->bind('App\Handlers\TaxUpdateHandler', function($app){
+            return new \App\Handlers\TaxUpdateHandler($app->make('GuzzleHttp\Client'));
+        });
     }
 
     /**

@@ -341,9 +341,7 @@
               <div class="form-group">
                 <label for="ship_prov">Province</label>
                 <select id="ship_prov" name="ship_prov" class="form-control">
-                  <option value="" data-taxrate="{{$taxes->where('province', '')->first()->rate}}"
-                    data-taxdesc="{{$taxes->where('province', '')->first()->description}}"
-                    selected disabled>
+                  <option value="" data-taxrate="0" data-taxdesc="No Tax" selected disabled>
                     Select a province
                   </option>
                   @foreach($provinces as $abbr => $prov)

@@ -29,6 +29,12 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground();
             //->appendOutputTo(storage_path('logs/remove-temp-imgs-' . date('Ymd', time()) . '.log'));
+
+        $schedule->command('update:taxes')
+            //->everyMinute()
+            ->monthly()
+            ->withoutOverlapping()
+            ->runInBackground();
     }
 
     /**
