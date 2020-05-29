@@ -92,6 +92,7 @@ trait FilesystemTrait
                 }
             }
         }
+        if(count(glob($fullDirPath . '/*')) == 0) @rmdir($fullDirPath);
         return $result;
     }
 

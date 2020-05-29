@@ -14,6 +14,7 @@ class Company extends Model
         'email', 'website', 'tax_reg', 'tel', 'fax', 'toll_free',
         'contact1_firstname', 'contact1_lastname', 'contact1_tel', 'contact1_ext', 'contact1_email', 'contact1_cell',
         'contact2_firstname', 'contact2_lastname', 'contact2_tel', 'contact2_ext', 'contact2_email', 'contact2_cell',
+        'logo'
     ];
 
     protected $hidden = [];

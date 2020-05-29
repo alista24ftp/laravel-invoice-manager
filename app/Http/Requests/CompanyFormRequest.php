@@ -35,11 +35,14 @@ class CompanyFormRequest extends FormRequest
             'contact2_tel' => 'nullable|min:10|max:11|regex:/[0-9]{10,11}/i',
             'contact2_ext' => 'nullable|max:6|regex:/^[0-9]*$/i',
             'contact2_email' => 'nullable|max:255|email',
-            'contact2_cell' => 'nullable|min:10|max:11|regex:/^[0-9]{10,11}$/i'
+            'contact2_cell' => 'nullable|min:10|max:11|regex:/^[0-9]{10,11}$/i',
+            'logo' => 'nullable|file|mimes:png,jpg,jpeg,gif'
         ];
 
         switch($this->method()){
             case 'POST':
+                return $rules;
+
             case 'PUT':
             case 'PATCH':
             {
@@ -118,6 +121,8 @@ class CompanyFormRequest extends FormRequest
             'contact2_cell.min' => 'Company contact 2 cellphone number must be 10 digits or more',
             'contact2_cell.max' => 'Company contact 2 cellphone number must be 11 digits or less',
             'contact2_cell.regex' => 'Incorrect company contact 2 cellphone number format',
+            'logo.file' => 'Company logo must be a valid file',
+            'logo.mimes' => 'Company logo must be a valid image'
         ];
     }
 }
