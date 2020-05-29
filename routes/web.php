@@ -55,6 +55,7 @@ Route::delete('sales/{rep}', 'SalesController@destroy')->name('sales.destroy');
 
 // User Info Routes
 Route::get('users/{user}/edit', 'UsersController@edit')->name('users.edit');
+Route::put('users/{user}', 'UsersController@update')->name('users.update');
 
 // Company Info Routes
 Route::get('companies/{company}/edit', 'CompaniesController@edit')->name('companies.edit');
