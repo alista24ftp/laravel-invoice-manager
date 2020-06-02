@@ -2,500 +2,32 @@
 @section('title', 'Invoice Edit')
 
 @section('content')
-  <h3 class="bg-primary p-1 m-1">Edit Invoice {{$invoice->invoice_no}}</h3>
   <form id="invoice_form" action="{{route('invoices.update', $invoice->invoice_no)}}" method="POST">
     @include('shared._error')
     {{csrf_field()}}
     {{method_field('PUT')}}
-    <input type="hidden" name="op" value="edit" />
+    <input type="hidden" id="op" name="op" value="edit" />
 
-    @if(Cache::has('user_' . Auth::user()->id . '_invoice'))
-      <div id="progress_alert" class="alert alert-info alert-dismissible fade show" role="alert">
-        <p class="mt-2 mb-2">There is a previous saved invoice progress.</p>
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-        <p class="mt-2 mb-2">Would you like to
-          <a href="{{route('invoices.restore')}}" id="restore_progress" class="alert-link">restore it</a> or
-          <a href="#" id="delete_progress" class="alert-link">delete it</a>?
-        </p>
-      </div>
-    @endif
+    @include('invoices._saved_progress_reminder')
 
     <!-- INVOICE INFO -->
-    <div class="card">
-      <h5 class="card-header">Invoice Info</h5>
-      <div class="card-body">
-        <div class="form-row">
-          <div class="form-group col-4">
-            <label for="invoice_no">Invoice #</label>
-            <input type="text" id="invoice_no" class="form-control" name="invoice_no" value="{{$invoice->invoice_no}}" readonly>
-            <input type="hidden" id="old_invoice_no" class="form-control" name="old_invoice_no" value="{{$invoice->invoice_no}}">
-          </div>
-          <div class="form-group col-4">
-            <label>Payment Status: {{$invoice->textPayStatus()}}</label>
-            <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#paymentModal">
-              Edit Payment
-            </button>
-            @include('invoices._edit_payment', ['invoice' => $invoice])
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group col-4">
-            <label for="company_tax_reg">Tax Reg. No</label>
-            <input type="text" id="company_tax_reg" name="company_tax_reg" class="form-control" value="{{$invoice->company_tax_reg}}">
-          </div>
-          <div class="form-group col-4">
-            <label for="create_date">Date</label>
-            <input type="date" name="create_date" id="create_date" class="form-control" value="{{$invoice->create_date}}">
-          </div>
-          <div class="form-group col-4">
-            <label for="po_no">PO No.</label>
-            <input type="text" id="po_no" name="po_no" class="form-control" value="{{$invoice->po_no}}">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group col-4">
-            <label for="sales_rep">Sales Rep</label>
-            <select id="sales_rep_select" name="sales_rep_select" class="form-control">
-              <option value="" {{is_null($invoice->sales_rep) || $invoice->sales_rep == '' ? 'selected' : ''}}>
-                Choose Sales Rep
-              </option>
-              @foreach($sales_reps as $rep)
-                <option value="{{$rep->firstname . ' ' . $rep->lastname}}"
-                  {{$invoice->sales_rep == ($rep->firstname . ' ' . $rep->lastname) ? 'selected' : ''}}>
-                  {{$rep->firstname . ' ' . $rep->lastname}}
-                </option>
-              @endforeach
-            </select>
-            <input type="text" class="form-control" id="sales_rep" name="sales_rep" value="{{$invoice->sales_rep}}">
-          </div>
-          <div class="form-group col-4">
-            <label for="terms">Terms</label>
-            <select id="terms_select" name="terms_select" class="form-control">
-              <option value="" selected disabled>Select Terms</option>
-              @foreach ($payment_terms as $terms)
-                <option value="{{$terms->option}}" data-period="{{$terms->period}}"
-                  {{$invoice->terms == $terms->option ? 'selected' : ''}}>
-                  {{$terms->option}} {{$terms->period ? "($terms->period DAY PERIOD)" : ''}}
-                </option>
-              @endforeach
-            </select>
-            <p id="terms_display">
-              {{old('terms', ($invoice->terms ? strtoupper($invoice->terms) : 'N/A'))}}
-              {{old('terms_period', ($invoice->terms_period ? "($invoice->terms_period DAY PERIOD)" : ''))}}
-            </p>
-            <input type="hidden" id="terms" name="terms" class="form-control" value="{{old('terms', $invoice->terms)}}">
-            <input type="hidden" id="terms_period" name="terms_period" class="form-control"
-              value="{{old('terms_period', $invoice->terms_period)}}">
-          </div>
-          <div class="form-group col-4">
-            <label for="via">VIA</label>
-            <select id="via_select" name="via_select" class="form-control">
-              <option value="" readonly>Select Shipping Options</option>
-              @foreach ($shipping_options as $option)
-                <option value="{{$option->option}}" {{$invoice->via == $option->option ? 'selected' : ''}}>
-                  {{$option->option}}
-                </option>
-              @endforeach
-            </select>
-            <input type="text" id="via" name="via" class="form-control" value="{{$invoice->via}}">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group col-6">
-            <label for="memo">Memo</label>
-            <textarea name="memo" id="memo" class="form-control">
-              {{$invoice->memo}}
-            </textarea>
-          </div>
-          <div class="form-group col-6">
-            <label for="notes">Notes</label>
-            <textarea name="notes" id="notes" class="form-control">
-              {{$invoice->notes}}
-            </textarea>
-          </div>
-        </div>
-      </div>
-    </div>
+    @include('invoices._invoice_info', compact('invoice', 'company', 'sales_reps', 'payment_terms', 'shipping_options'))
 
     <!-- COMPANY INFO -->
-    <div class="card">
-      <h5 class="card-header">Company Info</h5>
-      <div class="card-body">
-        <input type="hidden" id="company_id" name="company_id" value="{{$invoice->company_id}}">
-        <div class="row">
-          <div class="col">
-            <div class="form-group">
-              <label for="company_name">Company Name</label>
-              <input type="text" name="company_name" id="company_name" class="form-control" value="{{$invoice->company_name}}">
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-9">
-            <div class="form-group">
-              <label for="company_mail_addr">Mailing Address</label>
-              <input type="text" id="company_mail_addr" name="company_mail_addr" class="form-control" value="{{$invoice->company_mail_addr}}">
-            </div>
-          </div>
-          <div class="col-3">
-            <div class="form-group">
-              <label for="company_mail_postal">Postal Code</label>
-              <input type="text" name="company_mail_postal" id="company_mail_postal"
-                class="form-control" maxlength="6" value="{{$invoice->company_mail_postal}}">
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-9">
-            <div class="form-group">
-              <label for="company_ware_addr">Warehouse Address</label>
-              <input type="text" id="company_ware_addr" name="company_ware_addr" class="form-control" value="{{$invoice->company_ware_addr}}">
-            </div>
-          </div>
-          <div class="col-3">
-            <div class="form-group">
-              <label for="company_ware_postal">Postal Code</label>
-              <input type="text" name="company_ware_postal" id="company_ware_postal"
-                class="form-control" maxlength="6" value="{{$invoice->company_ware_postal}}">
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-6">
-            <div class="form-group">
-              <label for="company_email">Company Email</label>
-              <input type="text" class="form-control" id="company_email" name="company_email" value="{{$invoice->company_email}}">
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="form-group">
-              <label for="company_website">Company Website</label>
-              <input type="text" class="form-control" id="company_website" name="company_website" value="{{$invoice->company_website}}">
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-4">
-            <div class="form-group">
-              <label for="company_tel">Company Tel</label>
-              <input type="text" name="company_tel" id="company_tel"
-                class="form-control" maxlength="11" value="{{$invoice->company_tel}}">
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="form-group">
-              <label for="company_fax">Company Fax</label>
-              <input type="text" name="company_fax" id="company_fax"
-                class="form-control" maxlength="11" value="{{$invoice->company_fax}}">
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="form-group">
-              <label for="company_tollfree">Company Toll-Free</label>
-              <input type="text" name="company_tollfree" id="company_tollfree"
-                class="form-control" maxlength="11" value="{{$invoice->company_tollfree}}">
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-3">
-            <div class="form-group">
-              <label for="company_contact_fname">Contact First Name</label>
-              <input type="text" id="company_contact_fname" name="company_contact_fname"
-                class="form-control" maxlength="30" value="{{$invoice->company_contact_fname}}">
-            </div>
-          </div>
-          <div class="col-3">
-            <div class="form-group">
-              <label for="company_contact_lname">Contact Last Name</label>
-              <input type="text" id="company_contact_lname" name="company_contact_lname"
-                class="form-control" maxlength="30" value="{{$invoice->company_contact_lname}}">
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="form-group">
-              <label for="company_contact_email">Contact Email</label>
-              <input type="text" id="company_contact_email" name="company_contact_email"
-                class="form-control" maxlength="30" value="{{$invoice->company_contact_email}}">
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-4">
-            <div class="form-group">
-              <label for="company_contact_tel">Contact Tel</label>
-              <input type="text" id="company_contact_tel" name="company_contact_tel"
-                class="form-control" maxlength="11" value="{{$invoice->company_contact_tel}}">
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="form-group">
-              <label for="company_contact_cell">Contact Cell</label>
-              <input type="text" id="company_contact_cell" name="company_contact_cell"
-                class="form-control" maxlength="11" value="{{$invoice->company_contact_cell}}">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    @include('invoices._company_info', ['invoice' => $invoice, 'company' => $company])
 
     <!-- CUSTOMER INFO -->
-    <div class="card">
-      <div class="card-header d-flex align-items-center">
-        <h5 class="mr-3 mb-0">Customer Info</h5>
-        <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#customerModal">
-          Change Customer
-        </button>
-      </div>
-      <div class="modal fade" id="customerModal" tabindex="-1" role="dialog" aria-labelledby="customerModal" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="customerModalLabel">Change Customer</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-
-            <div class="modal-body">
-              <div class="form-group">
-                <label for="customer_key" class="col-form-label">Search Customer</label>
-                <input type="text" name="customer_key" id="customer_key" class="form-control"
-                  placeholder="Bill Name, Ship Name, Telephone, Postal Code, Contact">
-                <span>(Min 3 characters)</span>
-              </div>
-            </div>
-
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="card-body">
-        <input type="hidden" name="customer_id" id="customer_id" value="{{$invoice->customer_id}}">
-        <div class="border m-1 p-1">
-          <div class="row">
-            <div class="col-6">
-              <div class="form-group">
-                <label for="bill_name">Billing Name</label>
-                <input type="text" name="bill_name" id="bill_name" class="form-control" value="{{$invoice->bill_name}}">
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="form-group">
-                <label for="bill_addr">Billing Address</label>
-                <input type="text" name="bill_addr" id="bill_addr" class="form-control" value="{{$invoice->bill_addr}}">
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col">
-              <div class="form-group">
-                <label for="bill_prov">Province</label>
-                <select id="bill_prov" name="bill_prov" class="form-control">
-                  <option value="" disabled>Select a province</option>
-                  @foreach($provinces as $abbr => $prov)
-                    <option value="{{$abbr}}" {{$invoice->bill_prov == $abbr ? 'selected' : ''}}>
-                      {{$abbr}} - {{$prov}}
-                    </option>
-                  @endforeach
-                </select>
-              </div>
-            </div>
-            <div class="col">
-              <div class="form-group">
-                <label for="bill_city">City</label>
-                <input type="text" name="bill_city" id="bill_city" class="form-control" value="{{$invoice->bill_city}}">
-              </div>
-            </div>
-            <div class="col">
-              <div class="form-group">
-                <label for="bill_postal">Postal Code</label>
-                <input type="text" name="bill_postal" id="bill_postal"
-                  class="form-control" maxlength="6" value="{{$invoice->bill_postal}}">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Shipping Info -->
-        <div class="border m-1 p-1">
-          <div class="row">
-            <div class="col-6">
-              <div class="form-group">
-                <label for="ship_name">Shipping Name</label>
-                <input type="text" name="ship_name" id="ship_name" class="form-control" value="{{$invoice->ship_name}}">
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="form-group">
-                <label for="ship_addr">Shipping Address</label>
-                <input type="text" name="ship_addr" id="ship_addr" class="form-control" value="{{$invoice->ship_addr}}">
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col">
-              <div class="form-group">
-                <label for="ship_prov">Province</label>
-                <select id="ship_prov" name="ship_prov" class="form-control">
-                  <option value="" data-taxrate="0" data-taxdesc="No Tax" disabled>
-                    Select a province
-                  </option>
-                  @foreach($provinces as $abbr => $prov)
-                    <option value="{{$abbr}}"
-                      data-taxrate="{{$taxes->where('province', $abbr)->first()->rate}}"
-                      data-taxdesc="{{$taxes->where('province', $abbr)->first()->description}}"
-                      {{$invoice->ship_prov == $abbr ? 'selected' : ''}}>
-                      {{$abbr}} - {{$prov}}
-                    </option>
-                  @endforeach
-                </select>
-              </div>
-            </div>
-            <div class="col">
-              <div class="form-group">
-                <label for="ship_city">City</label>
-                <input type="text" name="ship_city" id="ship_city" class="form-control" value="{{$invoice->ship_city}}">
-              </div>
-            </div>
-            <div class="col">
-              <div class="form-group">
-                <label for="ship_postal">Postal Code</label>
-                <input type="text" name="ship_postal" id="ship_postal"
-                  class="form-control" maxlength="6" value="{{$invoice->ship_postal}}">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Other Customer Info -->
-        <div class="row">
-          <div class="col">
-            <div class="form-group">
-              <label for="customer_tel">Telephone</label>
-              <input type="text" name="customer_tel" id="customer_tel"
-                class="form-control" value="{{$invoice->customer_tel}}" maxlength="11">
-            </div>
-          </div>
-          <div class="col">
-            <div class="form-group">
-              <label for="customer_fax">Fax</label>
-              <input type="text" name="customer_fax" id="customer_fax"
-                class="form-control" value="{{$invoice->customer_fax}}" maxlength="11">
-            </div>
-          </div>
-          <div class="col">
-            <div class="form-group">
-              <label for="customer_contact1">Contact 1</label>
-              <input type="text" name="customer_contact1" id="customer_contact1" class="form-control" value="{{$invoice->customer_contact1}}">
-            </div>
-          </div>
-          <div class="col">
-            <div class="form-group">
-              <label for="customer_contact2">Contact 2</label>
-              <input type="text" name="customer_contact2" id="customer_contact2" class="form-control" value="{{$invoice->customer_contact2}}">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    @include('invoices._customer_info', compact('invoice', 'provinces', 'taxes'))
 
     <!-- ORDER INFO -->
-    <div class="card">
-      <h5 class="card-header">Orders</h5>
-      <div class="card-body">
-        <button type="button" id="orders_add" class="btn btn-sm btn-outline-primary">Add Order</button>
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Unit Price</th>
-              <th>Quantity</th>
-              <th>Discount</th>
-              <th>Total</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="orders_list">
-            @foreach($invoice->orders as $item_idx => $item)
-              <tr class="order-item" id="orders_{{$item_idx}}">
-                <td>
-                  <select id="orders_{{$item_idx}}_product_select"
-                    class="form-control product-select">
-                    <option id="orders_{{$item_idx}}_products_-1" value="" data-price="0" selected>Choose a Product</option>
-                    @foreach($products as $prod_idx => $product)
-                      <option id="orders_{{$item_idx}}_products_{{$prod_idx}}" data-price="{{$product->price}}"
-                        value="{{$product->name}}" {{$item->product == $product->name ? 'selected' : ''}}>
-                        {{$product->name}}
-                      </option>
-                    @endforeach
-                  </select>
-                  <input type="text" name="orders[{{$item_idx}}][product]"
-                    id="orders_{{$item_idx}}_product" class="form-control"
-                    value="{{$item->product}}">
-                </td>
-                <td>
-                  <input type="number" name="orders[{{$item_idx}}][price]"
-                    id="orders_{{$item_idx}}_price" class="form-control product-price"
-                    min="0" max="10000" step="0.01" value="{{$item->price}}">
-                </td>
-                <td>
-                  <input type="number" name="orders[{{$item_idx}}][quantity]"
-                    id="orders_{{$item_idx}}_quantity" class="form-control product-quantity"
-                    value="{{$item->quantity}}">
-                </td>
-                <td>
-                  <input type="number" name="orders[{{$item_idx}}][discount]"
-                    id="orders_{{$item_idx}}_discount" class="form-control product-discount"
-                    min="0" step="0.01"
-                    value="{{$item->discount ? $item->discount : 0.00}}">
-                </td>
-                <td>
-                  <input type="number" name="orders[{{$item_idx}}][total]"
-                    id="orders_{{$item_idx}}_total" class="form-control product-total"
-                    step="0.01"
-                    value="{{$item->total}}">
-                </td>
-                <td>
-                  <button type="button" id="orders_{{$item_idx}}_remove"
-                    class="btn btn-sm btn-danger orders-remove">Remove</button>
-                </td>
-              </tr>
-            @endforeach
-          </tbody>
-        </table>
-        <div class="justify-content-end">
-          <input type="hidden" name="tax_rate" value="{{$invoice->tax_rate}}" id="tax_rate">
-          <input type="hidden" name="tax_description" value="{{$invoice->tax_description}}" id="tax_description">
-          <div id="tax_info">
-            <p>Tax: <span id="tax_info_rate">{{$invoice->tax_rate}}</span>% (<span id="tax_info_desc">{{$invoice->tax_description}}</span>)</p>
-          </div>
-          <div class="form-group row">
-            <label class="col-2 col-form-label" for="freight">Freight</label>
-            <div class="col-2">
-              <input type="number" id="freight" name="freight" class="form-control"
-                min="0" step="0.01" value="{{$invoice->freight}}">
-            </div>
-          </div>
-          <hr>
-          <div id="final_total">
-            <p>Amount: $<span id="total_amount">{{$invoice->totalAmount()}}</span></p>
-          </div>
-        </div>
-      </div>
-    </div>
+    @include('invoices._order_info', ['invoice' => $invoice, 'products' => $products])
+
     <div class="form-row justify-content-center">
       <a class="btn btn-outline-secondary m-3" href="{{route('invoices.index')}}">Cancel</a>
       <button id="save_progress" type="button" class="btn btn-info m-3 save-progress">Save Progress</button>
       <button type="submit" class="btn btn-primary m-3">Save</button>
     </div>
   </form>
-
-
 @endsection
 
 @section('customstyles')
@@ -522,8 +54,57 @@
       return totalAmount;
     }
 
+    // Calculate total amount after taxes and shipping
+    function calculateTotalAmount(){
+      let totalAmount = tallyTotals() * (1 + parseFloat($('#tax_rate').val(), 3) / 100) + parseFloat($('#freight').val(), 2);
+      $('#total_amount').text(totalAmount.toFixed(2));
+    }
+
+    // Determine whether view is set in edit/create mode
+    function getOp(){
+      return document.getElementById('op').value; // 'edit' or 'create'
+    }
+
+    // Check to see if invoice is overdue
+    function isOverdue()
+    {
+      let isPaid = parseInt(document.getElementById('paid').value); // eg. 0 or 1
+      let createDate = document.getElementById('create_date').value; // eg. '2019-05-31'
+      let termPeriod = parseInt(document.getElementById('terms_period').value); // eg. null or 30
+      if(isPaid || !createDate || !termPeriod) return false;
+      let createDateParts = createDate.split('-'); // eg. [2019, 05, 31]
+      createDateParts[1]--; // month in JS date is 0-indexed
+      let createDt = new Date(createDateParts[0], createDateParts[1], createDateParts[2]);
+      let dueDt = new Date(createDt.getFullYear(), createDt.getMonth(), createDt.getDate() + termPeriod);
+      let today = new Date();
+      let todayDt = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      return todayDt >= dueDt;
+    }
+
+    // Set payment status
+    function setPaymentStatus()
+    {
+      let payStatus = document.getElementById('pay_status');
+      let payStatusDisplay = document.getElementById('pay_status_display');
+      let isPaid = parseInt(document.getElementById('paid').value);
+      let overdue = isOverdue();
+      payStatus.textContent = isPaid ? 'PAID' : (overdue ? 'OVERDUE' : 'UNPAID');
+      payStatus.classList.add(isPaid ? 'paid' : 'unpaid');
+      payStatus.classList.remove(isPaid ? 'unpaid' : 'paid');
+      payStatusDisplay.textContent = isPaid ? 'PAID' : (overdue ? 'OVERDUE' : 'UNPAID');
+      payStatusDisplay.classList.add(isPaid ? 'paid' : 'unpaid');
+      payStatusDisplay.classList.remove(isPaid ? 'unpaid' : 'paid');
+    }
+
     // DOM rendered
     $(document).ready(function(){
+      // after DOM renders
+      calculateTotalAmount();
+
+      if(getOp() == 'create'){
+        document.getElementById('invoice_no').removeAttribute('readonly');
+      }
+
       // when new payment proof is selected, add to list of proofs and render to DOM
       $(document).on('change', '#upload_proof', function(e){
         let invoiceNo = document.getElementById('invoice_no').value;
@@ -603,22 +184,10 @@
 
       // toggle payment status
       $(document).on('change', '#paid', function(e){
-        let oldPayStatus = $(this).val();
-        let newPayStatus = oldPayStatus == 1 ? 0 : 1;
+        let oldPayStatus = parseInt($(this).val());
+        let newPayStatus = oldPayStatus ? 0 : 1;
         $(this).val(newPayStatus);
-        if(newPayStatus){
-          $('#pay_status').text('PAID');
-          $('#pay_status').removeClass('unpaid');
-          $('#pay_status').addClass('paid');
-        }else{
-          $('#pay_status').text('UNPAID');
-          $('#pay_status').removeClass('paid');
-          $('#pay_status').addClass('unpaid');
-        }
-      });
-
-      $('#customerModal').on('show.bs.modal', function(event){
-        var modal = $(this);
+        setPaymentStatus();
       });
 
       // search and select customer with autocomplete functionality
@@ -677,8 +246,9 @@
         $('#orders_list').append('<tr class="order-item" id="orders_' + newOrderId + '"></tr>');
         $('#orders_' + newOrderId).append('<td></td>');
         $('#orders_' + newOrderId + ' td').append(productSel);
-        $('#orders_' + newOrderId + ' td').append('<input type="text" name="orders['+newOrderId+'][product]"'
+        $('#orders_' + newOrderId + ' td').append('<input type="hidden" name="orders['+newOrderId+'][product]"'
           + ' id="orders_'+newOrderId+'_product" class="form-control" value="">');
+        $('#orders_' + newOrderId + ' td').append('<p id="orders_'+newOrderId+'_product_name">No Product Selected</p>');
         $('#orders_' + newOrderId).append('<td><input type="number" name="orders['+newOrderId+'][price]"'
           + ' id="orders_'+newOrderId+'_price" class="form-control product-price"'
           + ' min="0" max="10000" step="0.01" value="0.00"></td>');
@@ -715,6 +285,7 @@
           let newOrderId = 'orders_' + index;
           let newProdSelId = 'orders_' + index + '_product_select';
           let newProdId = 'orders_' + index + '_product';
+          let newProdNameId = 'orders_' + index + '_product_name';
           let newPriceId = 'orders_' + index + '_price';
           let newQuantityId = 'orders_' + index + '_quantity';
           let newDiscountId = 'orders_' + index + '_discount';
@@ -735,6 +306,7 @@
           });
           $('#orders_' + oldOrderId + '_product_select').prop('id', newProdSelId);
           $('#orders_' + oldOrderId + '_product').prop('id', newProdId);
+          $('#orders_' + oldOrderId + '_product_name').prop('id', newProdNameId);
           $('#orders_' + oldOrderId + '_price').prop('id', newPriceId);
           $('#orders_' + oldOrderId + '_quantity').prop('id', newQuantityId);
           $('#orders_' + oldOrderId + '_discount').prop('id', newDiscountId);
@@ -753,6 +325,7 @@
         let orderId = prodSelectId.split('_')[1];
         let price = $('#' + prodSelectId + ' option:selected').data('price');
         $('#orders_' + orderId + '_product').val(selectedProd);
+        $('#orders_' + orderId + '_product_name').text(selectedProd ? selectedProd : 'No Product Selected');
         $('#orders_' + orderId + '_price').val(price);
         $('#orders_' + orderId + '_price').change();
       });
@@ -814,8 +387,7 @@
       // sum all totals for total amount
       // change total amount when total of any order changes
       $(document).on('change', '.product-total', function(e){
-        let totalAmount = tallyTotals() * (1 + parseFloat($('#tax_rate').val(), 3) / 100) + parseFloat($('#freight').val(), 2);
-        $('#total_amount').text(totalAmount.toFixed(2));
+        calculateTotalAmount();
       });
 
       // change total amount when tax changes
@@ -855,6 +427,20 @@
         $('#tax_rate').change();
       });
 
+      // change payment status when create data changes
+      $(document).on('change', '#create_date', function(e){
+        setPaymentStatus();
+      });
+
+      // change sales rep display when a different sales rep is selected
+      $(document).on('change', '#sales_rep_select', function(e){
+        let newSalesRep = $('#sales_rep_select option:selected').val();
+        $('#sales_rep').val(newSalesRep);
+        $('#sales_rep').change();
+        if(!newSalesRep) newSalesRep = '(None)';
+        $('#sales_rep_display').text(newSalesRep);
+      });
+
       // change terms info when terms change
       $(document).on('change', '#terms_select', function(e){
         let newTerms = $('#terms_select option:selected').val();
@@ -865,6 +451,16 @@
         $('#terms_period').val(newTermsPeriod);
         $('#terms_period').change();
         $('#terms_display').text(newTermsContent);
+        setPaymentStatus();
+      });
+
+      // change shipping option when a different via is selected
+      $(document).on('change', '#via_select', function(e){
+        let newVia = $('#via_select option:selected').val();
+        $('#via').val(newVia);
+        $('#via').change();
+        if(!newVia) newVia = 'N/A';
+        $('#via_display').text(newVia);
       });
 
       // save form progress

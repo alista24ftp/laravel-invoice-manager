@@ -13,6 +13,7 @@ use App\Models\PaymentTerm;
 use App\Models\Shipping;
 use App\Models\Product;
 use App\Models\Tax;
+use App\Models\Company;
 use App\Models\PaymentProof;
 use App\Traits\FilesystemTrait;
 use App\Handlers\SpreadsheetHandler;
@@ -72,6 +73,7 @@ class InvoicesController extends Controller
         $shipping_options = Shipping::all();
         $products = Product::all();
         $taxes = Tax::all();
+        $company = Company::find(1);
 
         if(session()->has('saved_invoice')){
             $invoice = session('saved_invoice');
@@ -83,7 +85,8 @@ class InvoicesController extends Controller
             'payment_terms',
             'shipping_options',
             'products',
-            'taxes'
+            'taxes',
+            'company'
         ));
     }
 
@@ -150,6 +153,7 @@ class InvoicesController extends Controller
         $shipping_options = Shipping::all();
         $products = Product::all();
         $taxes = Tax::all();
+        $company = Company::find(1);
 
         if(session()->has('saved_invoice')){
             $invoice = session('saved_invoice');
@@ -161,7 +165,8 @@ class InvoicesController extends Controller
             'payment_terms',
             'shipping_options',
             'products',
-            'taxes'
+            'taxes',
+            'company'
         ));
     }
 

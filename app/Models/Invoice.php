@@ -99,28 +99,23 @@ class Invoice extends Model
     public function overdue()
     {
         if($this->paid) return false;
-        if(!$this->create_date) return false; // default: not overdue
+        if(!$this->create_date || !$this->terms_period) return false; // default: not overdue
 
-        $term = $this->terms;
-        $create_date = Carbon::createFromFormat('Y-m-d', $this->create_date);
-        $elapsed_days = $create_date->diffInDays(Carbon::now());
-
-        if($term == '15DAYS'){
-            return $elapsed_days > 15;
-        }
-        if($term == '30DAYS'){
-            return $elapsed_days > 30;
-        }
-        if($term == '60DAYS'){
-            return $elapsed_days > 60;
-        }
-        return false;
+        $due_date = Carbon::createFromFormat('Y-m-d', $this->dueDate());
+        $now = Carbon::createFromFormat('Y-m-d', Carbon::now()->format('Y-m-d'));
+        return $now >= $due_date;
     }
 
     public function createDateFormat()
     {
         $dt = Carbon::createFromFormat('Y-m-d', $this->create_date);
         return $dt->toFormattedDateString(); // eg. Dec 25, 1975
+    }
+
+    public function dueDate()
+    {
+        if(!$this->terms_period) return null;
+        return Carbon::createFromFormat('Y-m-d', $this->create_date)->addDays($this->terms_period)->format('Y-m-d');
     }
 
     public function textPayStatus()
