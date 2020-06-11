@@ -13,11 +13,12 @@ class TaxesTableSeeder extends Seeder
     public function run()
     {
         Tax::insert([
+            /*
             [
                 'province' => '',
                 'description' => 'No Tax',
                 'rate' => '0.00',
-            ],
+            ],*/
             [
                 'province' => 'BC',
                 'description' => 'GST+PST',
